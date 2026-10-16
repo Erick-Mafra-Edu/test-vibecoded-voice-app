@@ -3,6 +3,10 @@
 -export([start_link/0, init/1]).
 start_link() -> supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 init([]) ->
+    RoomSup = #{id => beamvoice_room_sup,
+                start => {beamvoice_room_sup, start_link, []},
+                restart => permanent, shutdown => 5000,
+                type => supervisor, modules => [beamvoice_room_sup]},
     Registry = #{id => beamvoice_room_registry,
                  start => {beamvoice_room_registry, start_link, []},
                  restart => permanent, shutdown => 5000,
@@ -11,4 +15,4 @@ init([]) ->
              start => {beamvoice_http, start_link, []},
              restart => permanent, shutdown => 5000,
              type => worker, modules => [beamvoice_http]},
-    {ok, {{one_for_one, 5, 10}, [Registry, Http]}}.
+    {ok, {{one_for_one, 5, 10}, [RoomSup, Registry, Http]}}.

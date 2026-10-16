@@ -1,7 +1,11 @@
 {application, beamvoice,
  [{description, "Small Erlang/OTP voice signaling service"},
   {vsn, "0.1.0"},
-  {registered, [beamvoice_sup, beamvoice_room_registry]},
+  {registered, [beamvoice_sup, beamvoice_room_sup, beamvoice_room_registry]},
   {mod, {beamvoice_app, []}},
-  {applications, [kernel, stdlib, crypto, cowboy]},
-  {env, [{port, 8080}]}]}.
+  {applications, [kernel, stdlib, sasl, crypto, cowboy, jsx]},
+  {env, [{port, 8080},
+         {max_connections, 128},
+         {max_rooms, 100},
+         {max_room_members, 24},
+         {room_empty_ttl_ms, 1000}]}]}.
