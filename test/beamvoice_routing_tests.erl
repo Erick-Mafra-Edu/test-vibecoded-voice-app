@@ -59,3 +59,39 @@ owner_cleanup_test() ->
     Ref = monitor(process, Pid),
     Owner ! stop,
     receive {'DOWN', Ref, process, Pid, normal} -> ok after 500 -> error(orphan) end.
+
+commit_timeout_and_late_ack_test() ->
+    {ok, Pid} = beamvoice_route_coordinator:start_link(self(), options()),
+    try
+        ok = beamvoice_route_coordinator:report(Pid, sfu, metrics(0)),
+        Epoch = event(route_prepare, Pid, sfu),
+        ok = beamvoice_route_coordinator:ready(Pid, Epoch, sfu),
+        event(route_commit, Pid, sfu),
+        ?assertEqual(Epoch, event(route_rollback, Pid, none)),
+        ?assertEqual({error, invalid_transition}, beamvoice_route_coordinator:acknowledge(Pid, Epoch)),
+        ?assertMatch(#{active := none}, beamvoice_route_coordinator:status(Pid))
+    after beamvoice_route_coordinator:close(Pid) end.
+
+stale_metrics_and_oscillation_test() ->
+    {ok, Pid} = beamvoice_route_coordinator:start_link(self(), (options())#{fresh_ms := 100}),
+    try
+        ok = beamvoice_route_coordinator:report(Pid, p2p, metrics(0)),
+        activate(Pid, p2p),
+        ok = beamvoice_route_coordinator:report(Pid, sfu, metrics(0)),
+        ok = beamvoice_route_coordinator:report(Pid, p2p, (metrics(1))#{loss := 0.5}),
+        ok = beamvoice_route_coordinator:report(Pid, p2p, metrics(2)),
+        receive {route_prepare, Pid, _, _} -> error(oscillation) after 140 -> ok end,
+        ?assertMatch(#{active := p2p, target := none, state := degraded},
+                     beamvoice_route_coordinator:status(Pid))
+    after beamvoice_route_coordinator:close(Pid) end.
+
+sfu_probe_requires_media_confirmation_test() ->
+    {ok, Pid} = beamvoice_route_coordinator:start_link(self(), options()),
+    try
+        Probe = (metrics(0))#{packets := 0, rtt_ms := null},
+        ok = beamvoice_route_coordinator:report(Pid, sfu, Probe),
+        Epoch = event(route_prepare, Pid, sfu),
+        ?assertMatch(#{active := none, target := sfu}, beamvoice_route_coordinator:status(Pid)),
+        ?assertEqual({error, invalid_transition}, beamvoice_route_coordinator:acknowledge(Pid, Epoch)),
+        ?assertEqual(Epoch, event(route_rollback, Pid, none))
+    after beamvoice_route_coordinator:close(Pid) end.

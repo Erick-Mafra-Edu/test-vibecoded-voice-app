@@ -11,7 +11,7 @@ malformed_json_test() ->
     ?assertMatch(#{<<"reason">> := <<"bad_json">>}, jsx:decode(Payload, [return_maps])).
 
 oversized_message_test() ->
-    Data = binary:copy(<<"a">>, 4097),
+    Data = binary:copy(<<"a">>, 20001),
     ?assertMatch({reply, {close, 1009, _}, _},
                  beamvoice_ws_handler:websocket_handle({text, Data}, state())).
 
@@ -20,10 +20,20 @@ rate_limit_test() ->
         fun(_, Current) ->
             {reply, {text, _}, Next} = beamvoice_ws_handler:websocket_handle({text, <<"{}">>}, Current),
             Next
-        end, state(), lists:seq(1, 20)),
+        end, state(), lists:seq(1, 32)),
     ?assertMatch({reply, {close, 1008, _}, _},
                  beamvoice_ws_handler:websocket_handle({text, <<"{}">>}, State)).
 
+lab_fault_disabled_test() ->
+    Media = spawn(fun() -> receive stop -> ok end end),
+    try
+        S = (state())#{room => self(), media => Media},
+        {reply, {text, Payload}, _} = beamvoice_ws_handler:websocket_handle(
+            {text, <<"{\"type\":\"lab_kill_media\"}">>}, S),
+        ?assertMatch(#{<<"reason">> := <<"forbidden">>}, jsx:decode(Payload, [return_maps])),
+        ?assert(is_process_alive(Media))
+    after Media ! stop end.
+
 state() ->
-    #{room => undefined, user => undefined,
+    #{room => undefined, user => <<"test">>, claims => #{user => <<"test">>, rooms => [<<"test">>]},
       rate_started => erlang:monotonic_time(millisecond), rate_count => 0}.

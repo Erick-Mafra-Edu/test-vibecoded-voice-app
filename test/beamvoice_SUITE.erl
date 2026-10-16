@@ -1,12 +1,14 @@
 -module(beamvoice_SUITE).
 -export([all/0, init_per_suite/1, end_per_suite/1,
-         registry_restart_preserves_room/1, websocket_origin_policy/1]).
+         registry_restart_preserves_room/1, websocket_origin_policy/1,
+         metrics_render/1]).
 
-all() -> [registry_restart_preserves_room, websocket_origin_policy].
+all() -> [registry_restart_preserves_room, websocket_origin_policy, metrics_render].
 
 init_per_suite(Config) ->
     application:load(beamvoice),
     application:set_env(beamvoice, port, 0),
+    application:set_env(beamvoice, allow_insecure, true),
     {ok, _} = application:ensure_all_started(beamvoice),
     Config.
 
@@ -30,6 +32,14 @@ websocket_origin_policy(_Config) ->
     {match, _} = re:run(Denied, <<"HTTP/1\\.1 403">>),
     {ok, Allowed} = handshake(Port, <<"http://localhost:8080">>),
     {match, _} = re:run(Allowed, <<"HTTP/1\\.1 101">>).
+
+metrics_render(_Config) ->
+    Metrics = beamvoice_metrics:render(),
+    {match, _} = re:run(Metrics, <<"beamvoice_beam_processes [0-9]+">>),
+    case file:read_file("/sys/fs/cgroup/memory.current") of
+        {ok, _} -> {match, _} = re:run(Metrics, <<"beamvoice_cgroup_memory_current_bytes [0-9]+">>);
+        _ -> ok
+    end.
 
 handshake(Port, Origin) ->
     {ok, Socket} = gen_tcp:connect("127.0.0.1", Port, [binary, {active, false}], 1000),

@@ -12,7 +12,7 @@ close(Pid) -> gen_statem:stop(Pid).
 callback_mode() -> handle_event_function.
 
 init({Owner, Options}) when is_pid(Owner), is_map(Options) ->
-    Defaults = #{fresh_ms => 3000, sustain_ms => 3000, cooldown_ms => 10000,
+    Defaults = #{fresh_ms => 3000, sustain_ms => 3000, cooldown_ms => 3000,
                  switch_timeout_ms => 3000, tick_ms => 250, min_packets => 5,
                  max_rtt_ms => 300, max_jitter_ms => 30, max_loss => 0.05},
     O = maps:merge(Defaults, Options),
@@ -72,7 +72,13 @@ evaluate(State, #{options := O, active := Active} = D) ->
         _ -> none
     end,
     case Target =:= none orelse Target =:= Active of
-        true -> {State, D#{candidate := none}, []};
+        true ->
+            Next = case {Target, Active} of
+                {none, none} -> probing;
+                {none, _} -> degraded;
+                _ -> active
+            end,
+            {Next, D#{candidate := none}, []};
         false ->
             D1 = case maps:get(candidate, D) of
                 Target -> D;
@@ -92,7 +98,10 @@ evaluate(State, #{options := O, active := Active} = D) ->
 healthy(Route, #{metrics := Metrics, options := O}, Now) ->
     case maps:find(Route, Metrics) of
         {ok, #{received_at := At} = M} ->
-            Now - At =< maps:get(fresh_ms, O) andalso beamvoice_network_metrics:healthy(M, O);
+            Now - At =< maps:get(fresh_ms, O) andalso
+            (beamvoice_network_metrics:healthy(M, O) orelse
+             (Route =:= sfu andalso maps:get(packets, M) =:= 0 andalso
+              maps:get(ice, M) =:= connected andalso maps:get(dtls, M) =:= connected));
         error -> false
     end.
 notify(#{owner := Owner, epoch := Epoch}, Event, Route) ->

@@ -5,7 +5,7 @@
   {mod, {beamvoice_app, []}},
   {applications, [kernel, stdlib, sasl, crypto, cowboy, jsx]},
   {env, [{port, 8080},
-         {max_connections, 128},
-         {max_rooms, 100},
+         {max_connections, 32},
+         {max_rooms, 16},
          {max_room_members, 24},
          {room_empty_ttl_ms, 1000}]}]}.
