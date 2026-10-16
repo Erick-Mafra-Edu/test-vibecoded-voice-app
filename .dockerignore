@@ -1,0 +1,6 @@
+.git
+.github
+_build
+.rebar3
+*.beam
+*.zip

@@ -1,0 +1,7 @@
+{application, beamvoice,
+ [{description, "Small Erlang/OTP voice signaling service"},
+  {vsn, "0.1.0"},
+  {registered, [beamvoice_sup, beamvoice_room_registry]},
+  {mod, {beamvoice_app, []}},
+  {applications, [kernel, stdlib, crypto, cowboy]},
+  {env, [{port, 8080}]}]}.
