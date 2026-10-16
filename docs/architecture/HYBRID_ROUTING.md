@@ -19,11 +19,16 @@ ainda precisam de estratégia equivalente e validação audível.
 A SFU mantém uma conexão WebRTC por publicação/assinatura e só encaminha após
 preparar a rota SFU. Um transporte SFU conectado com zero pacotes é elegível
 apenas para a **preparação**; a confirmação exige `route_ready` do cliente
-depois de receber mídia. Se P2P estiver saudável, sua preferência evita tráfego
-SFU naquele fluxo. Não há estimativa de qualidade da rota futura antes de
+depois de receber mídia. Se P2P estiver saudável, sua preferência evita o
+**encaminhamento SFU ao destinatário**, mas o uplink do publicador para a SFU
+pode continuar transmitindo para permitir fallback. O servidor ainda não
+coordena publicação sob demanda; ver `docs/client/CLIENT_CONTRACT.md`. Não há
+estimativa de qualidade da rota futura antes de
 ativá-la; a política atual prioriza disponibilidade e P2P.
 
 Configuração de laboratório: `application:set_env(beamvoice, route_options, Map)`
 antes de iniciar as sessões. Os padrões de `src/beamvoice_route_coordinator.erl`
 incluem janela fresca 3 s, degradação sustentada 3 s e cooldown 3 s.
 Esses tempos são política inicial, não valores calibrados por áudio ouvido.
+O contrato de mensagens e as responsabilidades de reprodução no cliente estão
+em `docs/client/CLIENT_CONTRACT.md`.

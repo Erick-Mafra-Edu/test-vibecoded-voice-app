@@ -42,7 +42,8 @@ the token and checks the room ACL. Credential file format is an array such as
 `[{"token":"...","user":"alice","rooms":["friends"]}]`; do not commit
 production tokens. See `lab/credentials.lab.json` for **test-only** fixture IDs.
 `members`, P2P `signal`, SFU `media_offer`/`media_candidate` and route telemetry
-are documented in [routing](docs/architecture/HYBRID_ROUTING.md).
+are documented in the [client contract](docs/client/CLIENT_CONTRACT.md) and
+[routing](docs/architecture/HYBRID_ROUTING.md).
 
 Browser origins default to `http://localhost:8080,http://127.0.0.1:8080`. Set
 `ALLOWED_ORIGINS` to a comma-separated exact allowlist when using another origin.
