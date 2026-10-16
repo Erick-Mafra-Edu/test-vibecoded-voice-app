@@ -1,0 +1,93 @@
+name: beamvoice-lab
+x-peer: &peer
+  build:
+    context: .
+    dockerfile: docker/lab.Dockerfile
+  image: beamvoice-peer:lab
+  restart: on-failure
+  cap_drop: [ALL]
+  cap_add: [NET_ADMIN]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 512m
+  cpus: 1.0
+  environment:
+    SIGNAL_URL: http://beamvoice-server:8080/ws
+  read_only: true
+  tmpfs: [/tmp]
+services:
+  beamvoice-server:
+    build: .
+    image: beamvoice:lab
+    cpus: 2.0
+    mem_limit: 512m
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    environment:
+      BEAMVOICE_CREDENTIALS_FILE: /fixtures/credentials.lab.json
+      BEAMVOICE_ALLOW_INSECURE: "true"
+      BEAMVOICE_LAB_FAULTS: "true"
+      PORT: "8080"
+    volumes:
+      - ./lab/credentials.lab.json:/fixtures/credentials.lab.json:ro
+    networks:
+      lab: {ipv4_address: 172.30.80.2}
+  peer-a:
+    <<: *peer
+    networks:
+      lab: {ipv4_address: 172.30.80.11}
+  peer-b:
+    <<: *peer
+    networks:
+      lab: {ipv4_address: 172.30.80.12}
+  peer-c:
+    <<: *peer
+    networks:
+      lab: {ipv4_address: 172.30.80.13}
+  peer-d:
+    <<: *peer
+    networks:
+      lab: {ipv4_address: 172.30.80.14}
+  peer-e:
+    <<: *peer
+    networks:
+      lab: {ipv4_address: 172.30.80.15}
+  peer-f:
+    <<: *peer
+    networks:
+      lab: {ipv4_address: 172.30.80.16}
+  network-emulation:
+    build:
+      context: .
+      dockerfile: docker/lab.Dockerfile
+    image: beamvoice-peer:lab
+    command: [python, netem_server.py]
+    network_mode: service:beamvoice-server
+    depends_on: [beamvoice-server]
+    cap_drop: [ALL]
+    cap_add: [NET_ADMIN]
+    security_opt: [no-new-privileges:true]
+    read_only: true
+    tmpfs: [/tmp]
+    mem_limit: 128m
+    cpus: 0.5
+  test-runner:
+    image: beamvoice-peer:lab
+    build:
+      context: .
+      dockerfile: docker/lab.Dockerfile
+    command: [python, run.py]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    cpus: 1.0
+    mem_limit: 256m
+    environment:
+      SCENARIOS: ${SCENARIOS:-T01,T02,T03,T04,T05,T07,T10}
+    volumes:
+      - ./lab/results:/results
+    networks: [lab]
+    depends_on: [beamvoice-server, network-emulation, peer-a, peer-b, peer-c, peer-d, peer-e, peer-f]
+networks:
+  lab:
+    internal: true
+    ipam:
+      config: [{subnet: 172.30.80.0/24}]

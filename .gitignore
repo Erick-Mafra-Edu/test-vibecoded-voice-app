@@ -4,3 +4,11 @@ _build/
 erl_crash.dump
 .env
 .DS_Store
+media/_build/
+media/deps/
+lab/__pycache__/
+lab/results/
+*.pem
+*.key
+*.crt
+credentials.json

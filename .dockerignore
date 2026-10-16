@@ -4,3 +4,10 @@ _build
 .rebar3
 *.beam
 *.zip
+media/_build
+media/deps
+lab/results
+**/__pycache__
+.env
+*.pem
+credentials.json

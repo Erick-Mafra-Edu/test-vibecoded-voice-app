@@ -6,14 +6,14 @@
 - Measured end-to-end latency, jitter, packet loss and route switch time.
 
 ## Milestone 0 — foundation (included)
-- OTP app, rooms, registry, Cowboy WebSocket, health endpoint, route policy, EUnit tests.
+- OTP app, dynamically supervised rooms, registry, bounded Cowboy WebSocket, health endpoint, route policy, EUnit and Common Test suites.
 - Docker multi-stage build, GitHub Actions CI and GHCR publication.
 
 ## Milestone 1 — secure signaling
 - Signed authentication, per-room ACL, user identity from token rather than JSON payload.
 - WSS and message protocol versioning.
 - SDP offer/answer, ICE candidate exchange; integration tests with 2 clients.
-- DynamicSupervisor for room children, process cleanup and rate limits.
+- Signed authentication and ACL-aware reconnect semantics remain; room cleanup and basic rate/resource limits are included.
 
 ## Milestone 2 — BEAM media integration
 - Create an Elixir umbrella/mix application for ex_webrtc or a dedicated media process.

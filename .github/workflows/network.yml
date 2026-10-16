@@ -1,0 +1,17 @@
+name: Network lab
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  scenarios:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Abrupt peer-container failure
+        run: docker compose -f compose.test.yaml run --build --rm -e SCENARIOS=T08 test-runner
+      - name: Real WebRTC and selective netem
+        env:
+          SCENARIOS: T01,T02,T03,T04,T05,T06,T07,T09,T10,T12
+        run: docker compose -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from test-runner
