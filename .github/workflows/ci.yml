@@ -30,3 +30,13 @@ jobs:
           context: .
           push: false
           tags: beamvoice:ci
+  network-basic:
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: WebRTC P2P, SFU and route switch
+        env:
+          SCENARIOS: T01,T02,T03
+        run: docker compose -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from test-runner

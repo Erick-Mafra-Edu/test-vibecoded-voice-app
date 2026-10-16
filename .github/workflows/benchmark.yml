@@ -1,0 +1,15 @@
+name: Informative media benchmark
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  media-load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: 2, 6, 12 and 24 aiortc peers, 10 and 20 ms
+        env:
+          SCENARIOS: T11
+        run: docker compose -f compose.test.yaml up --build --abort-on-container-exit --exit-code-from test-runner
