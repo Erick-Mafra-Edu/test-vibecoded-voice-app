@@ -1,5 +1,9 @@
 # Hardening plan
 
+> Plano da baseline, mantido como histórico. Autenticação por credencial opaca,
+> SFU e testes de mídia foram implementados posteriormente. Pendências atuais
+> constam em `docs/testing/TEST_RESULTS.md` e `docs/performance/`.
+
 ## P0 — bloqueia qualquer exposição pública
 
 ### 1. Autenticação assinada e ACL por sala
@@ -83,3 +87,16 @@
 Não iniciar mídia antes de concluir P0. Em seguida, executar P1 no plano de controle.
 Somente então iniciar P2. Essa ordem evita construir um media plane sobre identidade e
 deploy inseguros.
+
+## Próximos gates da branch WebRTC
+
+1. **P0:** validar WSS com certificado real, rotação/revogação de credenciais e
+   TURN em topologia restrita; manter laboratório isolado até isso passar.
+2. **P0:** acompanhar correção de Cowlib EEF-CVE-2026-43966, atualizar
+   dependência/lockfiles e executar scanner de imagem com política de exceção.
+3. **P1:** repetir seis peers todos pela SFU, medir p95 de encaminhamento RTP e
+   CPU/GC/mailboxes em soak numa VPS dedicada de 2 vCPUs. T07 atual prova uma
+   rota SFU seletiva, não trinta rotas SFU simultâneas.
+4. **P1:** validar cliente de produção com playout/deduplicação audível e medir
+   latência ponta a ponta. T12 teve gap máximo de 477,3 ms; não aceitar
+   "troca imperceptível" sem reduzir e medir novamente essa lacuna.

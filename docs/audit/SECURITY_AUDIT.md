@@ -1,5 +1,9 @@
 # Security audit
 
+> Registro histórico da baseline anterior à integração WebRTC. Trechos abaixo
+> como "mídia ausente", "sem autenticação" e "sem ETS" não descrevem a branch
+> atual. Evidências e limites atuais: `docs/testing/TEST_RESULTS.md`.
+
 Data da auditoria: 2026-10-16. Escopo: todos os arquivos versionados do BeamVoice,
 incluindo código, testes, dependências, Docker, documentação e GitHub Actions.
 Modelo de ameaça: cliente remoto não confiável, conexões instáveis e uma VPS de 2 vCPUs.
@@ -168,3 +172,22 @@ partir da entrada externa no código atual.
 
 **NO-GO para exposição pública.** S-01 e S-02 são bloqueios. O serviço pode ser usado
 somente em desenvolvimento local/rede confiável, com bind loopback e os limites descritos.
+
+## Atualização da branch WebRTC — 2026-10-16
+
+- **CONFIRMADO · corrigido na branch:** credenciais opacas por usuário e ACL de
+  sala vinculam identidade ao WebSocket; SDP/ICE e transportes SFU são
+  autorizados pela associação à sala. T01/T02/T10 e testes EUnit/ExUnit
+  executaram esses caminhos. A baseline acima permanece como evidência histórica.
+- **CONFIRMADO · pendente, severidade média:** `mix deps.get` sinaliza
+  `cowlib 2.21.0` com EEF-CVE-2026-43966 (response splitting em
+  `cow_http_struct_hd:escape_string/2`). A presença da versão é comprovada;
+  a exploração por uma entrada específica do BeamVoice **não foi verificada**.
+  Acompanhar versão corrigida, atualizar lockfiles e repetir build/testes.
+- **POTENCIAL · alto para Internet pública:** TURN/NAT, navegador, renovação de
+  TLS, rotação/revogação de credenciais e comportamento sob indisponibilidade
+  prolongada não foram validados. A fixture do Compose contém tokens apenas de
+  laboratório, nunca de produção.
+- **NÃO VERIFICADO:** scanner confiável de CVEs na imagem final, execução dos
+  workflows GitHub e soak/malha integralmente SFU. Não declarar deploy público
+  seguro antes desses gates.

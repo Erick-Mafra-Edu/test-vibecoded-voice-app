@@ -1,5 +1,8 @@
 # Architecture review
 
+> Revisão histórica da baseline. Para a arquitetura implementada e verificada
+> nesta branch, ver `docs/architecture/` e `docs/testing/TEST_RESULTS.md`.
+
 ## O que este repositório faz
 
 BeamVoice é uma aplicação OTP experimental de sinalização por WebSocket. Um cliente pode
