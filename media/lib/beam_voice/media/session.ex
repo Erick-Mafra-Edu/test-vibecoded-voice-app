@@ -183,7 +183,7 @@ defmodule BeamVoice.Media.Session do
 
   defp negotiate(id, publisher, sdp, state) do
     options = Application.get_env(:beamvoice_media, :peer_options, []) ++
-      [audio_codecs: [:opus], video_codecs: [], features: [:rtcp_reports], ice_servers: []]
+      [audio_codecs: [:opus], video_codecs: [], features: [:rtcp_reports], ice_servers: ice_servers()]
     with {:ok, pc} <- PeerConnection.start_link(options) do
       track = if publisher != state.user, do: MediaStreamTrack.new(:audio), else: nil
       result = try do
@@ -217,6 +217,14 @@ defmodule BeamVoice.Media.Session do
   end
 
   defp signal(state, message), do: send(state.owner, {:media_signal, message})
+
+  defp ice_servers do
+    case System.get_env("BEAMVOICE_ICE_URL") do
+      nil -> []
+      url -> [%{urls: [url], username: System.get_env("BEAMVOICE_ICE_USERNAME", ""),
+                credential: System.get_env("BEAMVOICE_ICE_CREDENTIAL", "")}]
+    end
+  end
   defp transport(state, pc), do: Enum.find(state.transports, fn {_, t} -> t.pc == pc end)
   defp member?(room, user), do: match?({:ok, _}, :beamvoice_room.session(room, user))
   defp below_queue_limit?(pid) do

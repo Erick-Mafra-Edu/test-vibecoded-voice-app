@@ -4,6 +4,10 @@ start_link() ->
     Dispatch = cowboy_router:compile([{'_', [
         {"/health", beamvoice_health_handler, []},
         {"/metrics", beamvoice_metrics_handler, []},
+        {"/api/servers", beamvoice_catalog_handler, []},
+        {"/api/servers/:server", beamvoice_catalog_handler, []},
+        {"/api/servers/:server/channels", beamvoice_catalog_handler, []},
+        {"/api/servers/:server/channels/:channel", beamvoice_catalog_handler, []},
         {"/ws", beamvoice_ws_handler, []}
     ]}]),
     Port = port(),

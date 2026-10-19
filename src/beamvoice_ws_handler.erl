@@ -69,8 +69,10 @@ authenticated(#{<<"type">> := <<"join">>, <<"room">> := Room} = Message, State)
                             case beamvoice_room:join(Pid, User, self()) of
                                 ok ->
                                     Ref = monitor(process, Pid),
+                                    {ok, Key} = beamvoice_room:key(Pid, User, self()),
                                     reply(#{type => joined, user => User,
-                                            members => beamvoice_room:members(Pid)},
+                                            members => beamvoice_room:members(Pid),
+                                            media_key => Key},
                                           State#{room => Pid, room_ref => Ref});
                                 {error, Reason} -> error_reply(Reason, State)
                             end;
@@ -108,6 +110,10 @@ room_message(#{<<"type">> := <<"signal">>, <<"to">> := To} = M, State)
             end;
         false -> error_reply(invalid_signal, State)
     end;
+room_message(#{<<"type">> := <<"chat">>, <<"content">> := Content} = M, State)
+  when map_size(M) =:= 2, is_binary(Content), byte_size(Content) > 0,
+       byte_size(Content) =< 2000 ->
+    result(beamvoice_room:chat(maps:get(room, State), maps:get(user, State), self(), Content), State);
 room_message(#{<<"type">> := <<"media_offer">>, <<"transport">> := Id,
                <<"publisher">> := Publisher, <<"sdp">> := SDP} = M, State)
   when map_size(M) =:= 4, is_binary(Id), byte_size(Id) > 0, byte_size(Id) =< 64,

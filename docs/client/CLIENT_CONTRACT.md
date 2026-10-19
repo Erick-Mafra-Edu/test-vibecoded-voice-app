@@ -65,10 +65,18 @@ de publicação ao publicador, confirmação de uplink pronto e novos testes.
    usuário; nunca usar um ID enviado pelo cliente como identidade. O token
    provisionado tem 32–256 bytes; a sala tem até 64 bytes e deve estar na ACL.
 3. Enviar `{"type":"join","room":"friends"}` e aguardar `joined`, que contém
-   `user` e `members`. Depois, aplicar `peer_joined`/`peer_left` para presença.
+   `user`, `members` e `media_key` (32 bytes em base64). A chave é gerada por
+   sala ativa e entregue apenas aos membros autenticados; o backend conhece a
+   chave. Depois, aplicar `peer_joined`/`peer_left` para presença.
 4. Após entrar, `{"type":"members"}` retorna a lista atual. Se a sala estiver
    ociosa, usá-lo como keepalive a cada ~30 s; o WebSocket tem timeout ocioso
    de 60 s e a API WebSocket do navegador não expõe ping de protocolo.
+
+Após `joined`, `{"type":"chat","content":"olá"}` envia texto à sala. O
+servidor aceita de 1 a 2.000 bytes UTF-8, define o autor pela sessão
+autenticada e entrega `{"type":"chat","from":"alice","content":"olá"}`
+aos participantes, incluindo o remetente. O chat é efêmero: o servidor não
+guarda nem reenvia histórico após reconexão.
 
 Não há `leave`, retomada de sessão nem refresh de token no protocolo atual:
 para sair, feche o WebSocket e todas as conexões WebRTC. Reconexão cria sessão

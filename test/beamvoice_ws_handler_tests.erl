@@ -34,6 +34,11 @@ lab_fault_disabled_test() ->
         ?assert(is_process_alive(Media))
     after Media ! stop end.
 
+chat_requires_room_test() ->
+    {reply, {text, Payload}, _} = beamvoice_ws_handler:websocket_handle(
+        {text, <<"{\"type\":\"chat\",\"content\":\"hello\"}">>}, state()),
+    ?assertMatch(#{<<"reason">> := <<"bad_request">>}, jsx:decode(Payload, [return_maps])).
+
 state() ->
     #{room => undefined, user => <<"test">>, claims => #{user => <<"test">>, rooms => [<<"test">>]},
       rate_started => erlang:monotonic_time(millisecond), rate_count => 0}.
