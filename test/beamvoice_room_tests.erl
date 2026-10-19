@@ -65,6 +65,21 @@ invalid_member_test() ->
     ?assertEqual({error, invalid_member}, beamvoice_room:join(Room, <<>>, self())),
     gen_server:stop(Room).
 
+chat_is_room_scoped_test() ->
+    {ok, Room} = beamvoice_room:start_link(<<"chat">>),
+    Peer = spawn(fun() -> receive stop -> ok end end),
+    try
+        ok = beamvoice_room:join(Room, <<"alice">>, self()),
+        ok = beamvoice_room:join(Room, <<"bob">>, Peer),
+        ?assertEqual({error, not_in_room}, beamvoice_room:chat(Room, <<"bob">>, self(), <<"forged">>)),
+        ok = beamvoice_room:chat(Room, <<"alice">>, self(), <<"hello">>),
+        receive {signaling, #{type := chat, from := <<"alice">>, content := <<"hello">>}} -> ok
+        after 1000 -> ?assert(false) end
+    after
+        Peer ! stop,
+        gen_server:stop(Room)
+    end.
+
 room_rejoin_during_cleanup_test() ->
     Previous = application:get_env(beamvoice, room_empty_ttl_ms),
     application:set_env(beamvoice, room_empty_ttl_ms, 100),

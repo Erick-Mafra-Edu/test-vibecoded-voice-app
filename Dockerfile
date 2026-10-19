@@ -16,8 +16,11 @@ RUN mix deps.get && mix release beamvoice
 FROM elixir:1.18-otp-27@sha256:2c3babc5e569d8ee1c289dc7907c076d1e26253e6b9ecdb9bcc78f593508b013
 RUN groupadd --system app && useradd --system --gid app --home-dir /app app
 WORKDIR /app
+RUN mkdir -p /app/data && chown app:app /app/data
 COPY --from=build --chown=app:app /app/media/_build/prod/rel/beamvoice ./
 USER app
 ENV PORT=8080
+ENV BEAMVOICE_CATALOG_FILE=/app/data/catalog.json
+VOLUME /app/data
 EXPOSE 8080/tcp
 CMD ["/app/bin/beamvoice", "start"]

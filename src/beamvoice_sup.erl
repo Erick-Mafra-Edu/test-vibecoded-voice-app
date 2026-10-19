@@ -12,8 +12,12 @@ init([]) ->
                  start => {beamvoice_room_registry, start_link, []},
                  restart => permanent, shutdown => 5000,
                  type => worker, modules => [beamvoice_room_registry]},
+    Catalog = #{id => beamvoice_catalog,
+                start => {beamvoice_catalog, start_link, []},
+                restart => permanent, shutdown => 5000,
+                type => worker, modules => [beamvoice_catalog]},
     Http = #{id => beamvoice_http,
              start => {beamvoice_http, start_link, []},
              restart => permanent, shutdown => 5000,
              type => worker, modules => [beamvoice_http]},
-    {ok, {{one_for_one, 5, 10}, [Metrics, RoomSup, Registry, Http]}}.
+    {ok, {{one_for_one, 5, 10}, [Metrics, RoomSup, Registry, Catalog, Http]}}.

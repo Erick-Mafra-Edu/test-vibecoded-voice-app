@@ -70,6 +70,12 @@ de publicação ao publicador, confirmação de uplink pronto e novos testes.
    ociosa, usá-lo como keepalive a cada ~30 s; o WebSocket tem timeout ocioso
    de 60 s e a API WebSocket do navegador não expõe ping de protocolo.
 
+Após `joined`, `{"type":"chat","content":"olá"}` envia texto à sala. O
+servidor aceita de 1 a 2.000 bytes UTF-8, define o autor pela sessão
+autenticada e entrega `{"type":"chat","from":"alice","content":"olá"}`
+aos participantes, incluindo o remetente. O chat é efêmero: o servidor não
+guarda nem reenvia histórico após reconexão.
+
 Não há `leave`, retomada de sessão nem refresh de token no protocolo atual:
 para sair, feche o WebSocket e todas as conexões WebRTC. Reconexão cria sessão
 nova, obtém `members` novamente e refaz SDP/ICE; não reutilize candidatos,
