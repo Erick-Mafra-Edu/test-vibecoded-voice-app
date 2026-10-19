@@ -1,0 +1,18 @@
+listening-port=3478
+tls-listening-port=5349
+min-port=49160
+max-port=49359
+fingerprint
+lt-cred-mech
+realm=replace.example
+user=replace_user:replace_password
+cert=/run/turn-certs/turn.crt
+pkey=/run/turn-certs/turn.key
+no-cli
+no-loopback-peers
+no-multicast-peers
+log-file=stdout
+simple-log
+
+# If the host is behind NAT, configure external-ip=PUBLIC_IP/PRIVATE_IP and
+# forward 3478 TCP/UDP, 5349 TCP, and 49160-49359 UDP without port translation.

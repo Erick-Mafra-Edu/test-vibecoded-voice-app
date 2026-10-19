@@ -75,8 +75,15 @@ For ICE connectivity across NAT, configure the same reachable STUN or TURN URL
 and credentials on both client and SFU: `PULSE_ICE_URL`, `PULSE_ICE_USERNAME`,
 `PULSE_ICE_CREDENTIAL` for Pulse; `BEAMVOICE_ICE_URL`,
 `BEAMVOICE_ICE_USERNAME`, `BEAMVOICE_ICE_CREDENTIAL` for BeamVoice. A TURN
-server must be deployed separately and its relay UDP range exposed. Use `turns:`
-and TLS outside a trusted network.
+server must be deployed separately. On a Linux host with a reachable public IP,
+copy `turn/turnserver.conf.example` to the ignored `turn/turnserver.conf`, set a
+unique realm and long random username/password, and mount a certificate/key in
+`turn/certs/`. Start it with `docker compose -f compose.turn.yaml up -d`.
+Allow TCP/UDP 3478, TCP 5349, and UDP 49160–49359 through the firewall. Set
+both ICE URLs to the same TURN host (for example,
+`turn:turn.example:3478?transport=udp`) and use the configured credentials.
+When the host is behind NAT, also set `external-ip` and forward the listed
+ports unchanged. Use TLS transport where the deployed ICE stacks support it.
 
 Browser origins default to `http://localhost:8080,http://127.0.0.1:8080`. Set
 `ALLOWED_ORIGINS` to a comma-separated exact allowlist when using another origin.
