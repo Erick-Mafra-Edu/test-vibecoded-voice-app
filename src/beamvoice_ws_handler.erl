@@ -69,8 +69,10 @@ authenticated(#{<<"type">> := <<"join">>, <<"room">> := Room} = Message, State)
                             case beamvoice_room:join(Pid, User, self()) of
                                 ok ->
                                     Ref = monitor(process, Pid),
+                                    {ok, Key} = beamvoice_room:key(Pid, User, self()),
                                     reply(#{type => joined, user => User,
-                                            members => beamvoice_room:members(Pid)},
+                                            members => beamvoice_room:members(Pid),
+                                            media_key => Key},
                                           State#{room => Pid, room_ref => Ref});
                                 {error, Reason} -> error_reply(Reason, State)
                             end;

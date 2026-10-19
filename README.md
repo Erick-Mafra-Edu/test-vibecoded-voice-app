@@ -39,7 +39,15 @@ in the credentials JSON file:
 {"type":"auth","token":"replace-with-an-individual-32-byte-or-longer-token"}
 ```
 Then `{"type":"join","room":"friends"}`. The server derives the user ID from
-the token and checks the room ACL. Credential file format is an array such as
+the token and checks the room ACL. A successful `joined` response includes
+`media_key`, a base64-encoded 32-byte key shared by members of that live room.
+The key is generated when the room starts and expires with it. The backend can
+read the key, so media and chat encryption is not strict end-to-end encryption.
+This leaves room for a future authorized call investigation or recording flow;
+this release does not record or decrypt calls. Key delivery happens on join,
+outside the per-packet media forwarding path.
+Use WSS outside loopback: plain WS exposes both the bearer token and room key.
+Credential file format is an array such as
 `[{"token":"...","user":"alice","rooms":["friends"]}]`; do not commit
 production tokens. See `lab/credentials.lab.json` for **test-only** fixture IDs.
 Set `"admin":true` on a trusted credential to permit catalog changes. A credential

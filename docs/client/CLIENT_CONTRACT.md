@@ -65,7 +65,9 @@ de publicação ao publicador, confirmação de uplink pronto e novos testes.
    usuário; nunca usar um ID enviado pelo cliente como identidade. O token
    provisionado tem 32–256 bytes; a sala tem até 64 bytes e deve estar na ACL.
 3. Enviar `{"type":"join","room":"friends"}` e aguardar `joined`, que contém
-   `user` e `members`. Depois, aplicar `peer_joined`/`peer_left` para presença.
+   `user`, `members` e `media_key` (32 bytes em base64). A chave é gerada por
+   sala ativa e entregue apenas aos membros autenticados; o backend conhece a
+   chave. Depois, aplicar `peer_joined`/`peer_left` para presença.
 4. Após entrar, `{"type":"members"}` retorna a lista atual. Se a sala estiver
    ociosa, usá-lo como keepalive a cada ~30 s; o WebSocket tem timeout ocioso
    de 60 s e a API WebSocket do navegador não expõe ping de protocolo.

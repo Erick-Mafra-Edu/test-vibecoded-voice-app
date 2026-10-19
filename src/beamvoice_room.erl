@@ -1,6 +1,6 @@
 -module(beamvoice_room).
 -behaviour(gen_server).
--export([start_link/1, join/3, leave/2, members/1, session/2, chat/4]).
+-export([start_link/1, join/3, leave/2, members/1, session/2, chat/4, key/3]).
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -define(CALL_TIMEOUT, 2000).
 start_link(Id) -> gen_server:start_link(?MODULE, Id, []).
@@ -11,12 +11,13 @@ join(Pid, UserId, SessionPid)
 join(_, _, _) -> {error, invalid_member}.
 leave(Pid, UserId) -> gen_server:call(Pid, {leave, UserId}, ?CALL_TIMEOUT).
 members(Pid) -> gen_server:call(Pid, members, ?CALL_TIMEOUT).
+key(Pid, User, SessionPid) -> gen_server:call(Pid, {key, User, SessionPid}, ?CALL_TIMEOUT).
 session(Pid, User) -> gen_server:call(Pid, {session, User}, ?CALL_TIMEOUT).
 chat(Pid, User, SessionPid, Content) ->
     gen_server:call(Pid, {chat, User, SessionPid, Content}, ?CALL_TIMEOUT).
 init(Id) ->
     schedule_empty_stop(),
-    {ok, #{id => Id, members => #{}}}.
+    {ok, #{id => Id, members => #{}, key => base64:encode(crypto:strong_rand_bytes(32))}}.
 handle_call({join, UserId, SessionPid}, _From, #{members := Members} = State) ->
     MaxMembers = application:get_env(beamvoice, max_room_members, 24),
     case maps:find(UserId, Members) of
@@ -48,6 +49,12 @@ handle_call({leave, UserId}, _From, #{members := Members} = State) ->
     end;
 handle_call(members, _From, #{members := Members} = State) ->
     {reply, maps:keys(Members), State};
+handle_call({key, User, SessionPid}, _From, #{members := Members, key := Key} = State) ->
+    Reply = case maps:find(User, Members) of
+        {ok, {SessionPid, _}} -> {ok, Key};
+        _ -> {error, not_in_room}
+    end,
+    {reply, Reply, State};
 handle_call({session, User}, _From, #{members := Members} = State) ->
     Reply = case maps:find(User, Members) of
         {ok, {Pid, _}} -> {ok, Pid};
